@@ -1,3 +1,6 @@
+import os
+import time
+
 ''' BLACK on TOP
 
 1  - 2  - 3  - 4  (BLACK)
@@ -30,11 +33,16 @@ class CheckersGame():
         self.turn = Colour.RED
         self.jump = 0
         self.listOfNodes = []
+        self.output_file = None
         
     ############## INTERFACE FUNCTIONS ################
 
     def startGame(self):
         self.setup_board()
+        self.create_output_file()
+
+    def endGame(self):
+        self.output_file.close()
 
     def possible_moves(self):
         ## Returns a move (e.g [20,22] (square))
@@ -162,7 +170,13 @@ class CheckersGame():
                         downRight = self.listOfNodes[i+1][j+1]
 
     def create_output_file(self):
-        pass
+        directory  = os.path.join(os.getcwd(), 'gameLogs')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        file_path = os.path.join(directory, 'checkers' + time.strftime("%Y%m%d-%H%M%S"))
+        self.output_file = open(file_path, 'w')
+
     
     def is_piece_threatened(self, node):
         return (is_enemy_in_dir(node, node.upRight, Colour.BLACK, node.downLeft) or \
@@ -191,7 +205,9 @@ class CheckersGame():
         return self.listOfNodes((square-1)/4,(square-1)%4)
 
     def save_move(self):
-        pass
+        output = str(move[0]) + ' - ' + str(move[1])
+        print output
+        self.output_file.write(output)
 
     def undo_move(self, move):
         self.move_here([move[1],move[0]])
