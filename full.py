@@ -32,6 +32,9 @@ class CheckersGame():
     def __init__(self):
         self.turn = Colour.RED
         self.jump = 0
+        self.jumpNode=-0
+        self.jumpColour=None
+        self.jumpKing=False
         self.listOfNodes = []
         self.output_file = None
         
@@ -54,7 +57,7 @@ class CheckersGame():
         for nodeRow in listOfNodes:
             for area in nodeRow:
                 if area.colour == turn:
-                    tempMoves=check_node_move(area)
+                    tempMoves=self.check_node_move(area)
                     if self.jump == 0:
                         moves.append(tempMoves)
                     else:
@@ -70,7 +73,7 @@ class CheckersGame():
     def get_states_for_list_of_moves(self, listOfMoves):
         listOfStates = []
         for move in listOfMoves:
-            self.move_here(move)
+            self.temp_here(move)
             state = {}
             state['numBlack'] = 0
             state['numRed'] = 0
@@ -99,30 +102,37 @@ class CheckersGame():
             self.undo_move(move)
 
     def move_here(self, move):
+        self.temp_move(move)
+        self.jumpNode = 0
+        self.jumpKing = False
+        self.jumpColour = None
+        self.save_move(move)
+
+
+    def temp_move(self, move):
         ## make sure the move is in list_of_possible_moves
         if move in self.listOfMoves:
-            oldNode = get_node_for_square(move[0])
-            newNode = get_node_for_square(move[1])
-
+            oldNode = self.get_node_for_square(move[0])
+            newNode = self.get_node_for_square(move[1])
             if self.jump == 1:
                 if oldNode.upLeft.upLeft == newNode:
-                    oldNode.upLeft.colour = None
-                    oldNode.upLeft.king = None
+                    self.copy_node_piece(oldNode.upLeft)
+                    self.delete_node_piece(oldNone.upLeft)
                 elif oldNode.upRight.upRight == newNode:
-                    oldNode.upRight.colour = None
-                    oldNode.upRight.king = None
+                    self.copy_node_piece(oldNode.upLeft)
+                    self.delete_node_piece(oldNone.upLeft)
                 elif oldNode.downLeft.downLeft == newNode:
-                    oldNode.downLeft.colour = None
-                    oldNode.downLeft.king = None
+                    self.copy_node_piece(oldNode.upLeft)
+                    self.delete_node_piece(oldNone.upLeft)
                 else:
-                    oldNode.downRight.colour = None
-                    oldNode.downRight.king = None
+                    self.copy_node_piece(oldNode.upLeft)
+                    self.delete_node_piece(oldNone.upLeft)
 
             newNode.king = oldNode.king
-            oldNode.king = None
+            oldNode.king = False
 
             newNode.colour =  oldNode.colour
-            oldNode.colour =  None
+            oldNode.colour =  False
 
             return True
         return False
@@ -178,6 +188,15 @@ class CheckersGame():
         self.output_file = open(file_path, 'w')
 
     
+    def copy_node_piece(self, node):
+        self.jumpNode = self.get_square_for_node();
+        self.jumpColour =  node.colour
+        self.jumpKing = node.king
+
+    def delete_node_piece(self, node):
+        node.colour = None
+        node.king = False
+
     def is_piece_threatened(self, node):
         return (is_enemy_in_dir(node, node.upRight, Colour.BLACK, node.downLeft) or \
                 is_enemy_in_dir(node, node.upLeft, Colour.BLACK, node.downRight) or \
@@ -210,6 +229,9 @@ class CheckersGame():
         self.output_file.write(output)
 
     def undo_move(self, move):
-        self.move_here([move[1],move[0]])
+        self.temp_move([move[1],move[0]])
+        node = self.get_node_for_square(self.jumpNode)
+        node.king=self.jumpKing
+        node.king=self.jumpColour
 
     
