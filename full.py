@@ -39,6 +39,7 @@ class CheckersGame():
 
     def possible_moves(self):
         ## Returns a move (e.g [20,22] (square))
+        self.jump=0
         moves=[]
         jumps_moves=[]
         listOfMoves = []
@@ -79,6 +80,20 @@ class CheckersGame():
         if move in self.listOfMoves:
             oldNode = get_node_for_square(move[0])
             newNode = get_node_for_square(move[1])
+
+            if self.jump == 1:
+                if oldNode.upLeft.upLeft == newNode:
+                    oldNode.upLeft.colour = None
+                    oldNode.upLeft.king = None
+                elif oldNode.upRight.upRight == newNode:
+                    oldNode.upRight.colour = None
+                    oldNode.upRight.king = None
+                elif oldNode.downLeft.downLeft == newNode:
+                    oldNode.downLeft.colour = None
+                    oldNode.downLeft.king = None
+                else:
+                    oldNode.downRight.colour = None
+                    oldNode.downRight.king = None
 
             newNode.king = oldNode.king
             oldNode.king = None
