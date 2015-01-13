@@ -40,22 +40,6 @@ class CheckersGame():
         self.listOfNodes = []
         self.listOfMoves = []
         self.output_file = None
-
-    ### FOR DEBUGGING PURPOSES
-    def test_function(self):
-        for row in self.listOfNodes:
-            for node in row:
-                print str(self.get_square_for_node(node)) + " - "
-                if node:
-                    if node.upRight:
-                        print self.get_square_for_node(node.upRight)
-                    if node.upLeft:
-                        print self.get_square_for_node(node.upLeft)
-                    if node.downRight:
-                        print self.get_square_for_node(node.downRight)
-                    if node.downLeft:
-                        print self.get_square_for_node(node.downLeft)
-                print "--------"
         
     ############## INTERFACE FUNCTIONS ################
 
@@ -82,14 +66,12 @@ class CheckersGame():
             self.listOfMoves = moves
         else:
             self.listOfMoves = jumps_moves
-            print "print jump moves " + str(jumps_moves)
 
         return self.listOfMoves
 
     def get_states_for_list_of_moves(self, listOfMoves):
         listOfStates = []
         for move in listOfMoves:
-            print "calculating state for move: " + str(move)
             self.temp_move(move)
             state = {}
             state['numBlack'] = 0
@@ -132,7 +114,6 @@ class CheckersGame():
             self.permenant = False
             self.save_move(move)
             self.switch_turn()
-            print "Successfully moved: " + str(move)
             return True
 
         return False
@@ -285,8 +266,6 @@ class CheckersGame():
             
         if len(jumps)!=0:
             self.jump=1
-            print "JUMPS ARE"
-            print jumps
             return jumps
         else:
             return moves
