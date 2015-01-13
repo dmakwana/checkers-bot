@@ -55,9 +55,9 @@ class CheckersGame():
         listOfMoves = []
 
         for nodeRow in listOfNodes:
-            for area in nodeRow:
-                if area.colour == turn:
-                    tempMoves=self.check_node_move(area)
+            for piece in nodeRow:
+                if piece.colour == turn:
+                    tempMoves=self.check_node_move(piece)
                     if self.jump == 0:
                         moves.append(tempMoves)
                     else:
@@ -200,7 +200,7 @@ class CheckersGame():
     def is_piece_threatened(self, node):
         return (is_enemy_in_dir(node, node.upRight, Colour.BLACK, node.downLeft) or \
                 is_enemy_in_dir(node, node.upLeft, Colour.BLACK, node.downRight) or \
-                is_enemy_in_dir(node, node.downRight, Colour.RED node.upLeft) or \
+                is_enemy_in_dir(node, node.downRight, Colour.RED, node.upLeft) or \
                 is_enemy_in_dir(node, node.downLeft, Colour.RED, node.upRight))
 
     def is_enemy_in_dir(self, node, adjacentNode, enemyColour, oppAdjNode):
@@ -212,8 +212,8 @@ class CheckersGame():
 
         return False
 
-    def check_node_move(self, area):
-        if area.king == True:
+    def check_node_move(self, piece):
+        if piece.king == True:
             pass
     # This checks if the move you're about to make is valid
 
