@@ -31,8 +31,7 @@ class CheckersGame():
         self.turn ="red"
         self.jump=0
         self.listOfNodes = []
-        self.listOfMoves = []
-
+        
     ############## INTERFACE FUNCTIONS ################
 
     def startGame(self):
@@ -42,7 +41,8 @@ class CheckersGame():
         ## Returns a move (e.g [20,22] (square))
         moves=[]
         jumps_moves=[]
-        
+        listOfMoves = []
+
         for nodeRow in listOfNodes:
             for area in nodeRow:
                 if area.colour == turn:
@@ -53,14 +53,14 @@ class CheckersGame():
                         jumps_moves.append(tempMoves)
 
         if self.jump == 0:
-            self.listOfMoves = moves
+            listOfMoves = moves
         else:
-            self.listOfMoves = jumps_moves
+            listOfMoves = jumps_moves
 
         return self.listOfMoves
 
-    def get_states_for_list_of_moves(self, list_of_moves):
-        for move in list_of_moves:
+    def get_states_for_list_of_moves(self, listOfMoves):
+        for move in listOfMoves:
             self.move_here(move)
             ## do calculations
             # 1. num black pieces
