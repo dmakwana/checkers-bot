@@ -30,15 +30,18 @@ class Node():
 
 class CheckersGame():
     def __init__(self):
-        self.turn = Colour.RED
+        self.turn = Colour.BLACK
         self.jump = 0
-        self.jumpNode=-0
-        self.jumpColour=None
-        self.jumpKing=False
+        self.jumpNode = 0
+        self.jumpColour = None
+        self.jumpKing = False
+        self.undo_king = 0
+        self.undo = False
         self.listOfNodes = []
         self.listOfMoves = []
         self.output_file = None
 
+    ### FOR DEBUGGING PURPOSES
     def test_function(self):
         for row in self.listOfNodes:
             for node in row:
@@ -73,22 +76,20 @@ class CheckersGame():
         for nodeRow in self.listOfNodes:
             for piece in nodeRow:
                 if piece.colour == self.turn:
-                    tempMoves=self.check_node_moves(piece)
-                    if self.jump == 0:
-                        moves.extend(tempMoves)
-                    else:
-                        jumps_moves.extend(tempMoves)
+                    tempMoves=self.check_node_moves(moves,jumps_moves,piece)
 
         if self.jump == 0:
             self.listOfMoves = moves
         else:
             self.listOfMoves = jumps_moves
+            print "print jump moves " + str(jumps_moves)
 
         return self.listOfMoves
 
     def get_states_for_list_of_moves(self, listOfMoves):
         listOfStates = []
         for move in listOfMoves:
+            print "calculating state for move: " + str(move)
             self.temp_move(move)
             state = {}
             state['numBlack'] = 0
@@ -121,41 +122,65 @@ class CheckersGame():
         return listOfStates
 
     def move_here(self, move):
-        self.temp_move(move)
-        self.jumpNode = 0
-        self.jumpKing = False
-        self.jumpColour = None
-        self.save_move(move)
+        if move in self.listOfMoves:
+            self.permenant = True
+            self.temp_move(move)
+            self.jumpNode = 0
+            self.jumpKing = False
+            self.jumpColour = None
+            self.undo_king = 0
+            self.permenant = False
+            self.save_move(move)
+            self.switch_turn()
+            print "Successfully moved: " + str(move)
+            return True
+
+        return False
+
 
     ############## INTERNAL FUNCTIONS###############
 
+    def switch_turn(self):
+        if self.turn == Colour.BLACK:
+            self.turn = Colour.RED
+        else:
+            self.turn = Colour.BLACK
+
     def temp_move(self, move):
         ## make sure the move is in list_of_possible_moves
-        if move in self.listOfMoves:
-            oldNode = self.get_node_for_square(move[0])
-            newNode = self.get_node_for_square(move[1])
-            if self.jump == 1:
-                if oldNode.upLeft.upLeft == newNode:
-                    self.copy_node_piece(oldNode.upLeft)
-                    self.delete_node_piece(oldNone.upLeft)
-                elif oldNode.upRight.upRight == newNode:
-                    self.copy_node_piece(oldNode.upLeft)
-                    self.delete_node_piece(oldNone.upLeft)
-                elif oldNode.downLeft.downLeft == newNode:
-                    self.copy_node_piece(oldNode.upLeft)
-                    self.delete_node_piece(oldNone.upLeft)
-                else:
-                    self.copy_node_piece(oldNode.upLeft)
-                    self.delete_node_piece(oldNone.upLeft)
+        
+        oldNode = self.get_node_for_square(move[0])
+        newNode = self.get_node_for_square(move[1])
+        if self.jump == 1 and self.undo!=True:
+            if oldNode.upLeft!=None and oldNode.upLeft.upLeft == newNode:
+                self.copy_node_piece(oldNode.upLeft)
+                self.delete_node_piece(oldNode.upLeft)
+            elif oldNode.upRight!=None and oldNode.upRight.upRight == newNode:
+                self.copy_node_piece(oldNode.upRight)
+                self.delete_node_piece(oldNode.upRight)
+            elif oldNode.downLeft!=None and oldNode.downLeft.downLeft == newNode:
+                self.copy_node_piece(oldNode.downLeft)
+                self.delete_node_piece(oldNode.downLeft)
+            else:
+                self.copy_node_piece(oldNode.downRight)
+                self.delete_node_piece(oldNode.downRight)
 
-            newNode.king = oldNode.king
-            oldNode.king = False
+        newNode.king = oldNode.king
+        oldNode.king = False
 
-            newNode.colour =  oldNode.colour
-            oldNode.colour =  False
+        newNode.colour =  oldNode.colour
+        oldNode.colour =  None
+        if self.undo!= True:
+            self.check_king(newNode)
 
-            return True
-        return False
+    def check_king(self, node):
+        if node.king != True:
+            if (node.colour == Colour.BLACK and node.row == 7) or (node.colour == Colour.RED and node.row == 0):
+                if self.permenant == False:
+                    self.undo_king=self.get_square_for_node(node)
+                node.king = True
+
+
 
     def setup_board(self):
         for i in range(8):
@@ -181,32 +206,32 @@ class CheckersGame():
                     upBorder = True
                 if i == 7:
                     downBorder = True
-                if j == 0 and i % 2 == 0:
+                if j == 0 and i % 2 == 1:
                     leftBorder = True
-                if j == 3 and i % 2 == 1:
+                if j == 3 and i % 2 == 0:
                     rightBorder = True
                 if not upBorder:
                     if not leftBorder:
-                        if i % 2 == 0:
+                        if i % 2 == 1:
                             moveIdx = j-1
                         else:
                             moveIdx = j
                         self.listOfNodes[i][j].upLeft = self.listOfNodes[i-1][moveIdx]
                     if not rightBorder:
-                        if i % 2 == 1:
+                        if i % 2 == 0:
                             moveIdx = j+1
                         else:
                             moveIdx = j
                         self.listOfNodes[i][j].upRight = self.listOfNodes[i-1][moveIdx]
                 if not downBorder:
                     if not leftBorder:
-                        if i % 2 == 0:
+                        if i % 2 == 1:
                             moveIdx = j-1
                         else:
                             moveIdx = j
                         self.listOfNodes[i][j].downLeft = self.listOfNodes[i+1][moveIdx] 
                     if not rightBorder:
-                        if i % 2 == 1:
+                        if i % 2 == 0:
                             moveIdx = j+1
                         else:
                             moveIdx = j
@@ -218,11 +243,11 @@ class CheckersGame():
             os.makedirs(directory)
 
         file_path = os.path.join(directory, 'checkers' + time.strftime("%Y%m%d-%H%M%S"))
-        self.output_file = open(file_path, 'w')
+        self.output_file = open(file_path, 'w+')
 
     
     def copy_node_piece(self, node):
-        self.jumpNode = self.get_square_for_node();
+        self.jumpNode = self.get_square_for_node(node);
         self.jumpColour =  node.colour
         self.jumpKing = node.king
 
@@ -245,9 +270,7 @@ class CheckersGame():
 
         return False
 
-    def check_node_moves(self, piece):
-        moves=[]
-        jumps=[]
+    def check_node_moves(self,moves,jumps,piece):
         if piece.king == True or piece.colour == Colour.BLACK:
             if piece.downLeft != None:
                 self.check_node_dir(piece,piece.downLeft,piece.downLeft.downLeft,moves,jumps)
@@ -262,6 +285,8 @@ class CheckersGame():
             
         if len(jumps)!=0:
             self.jump=1
+            print "JUMPS ARE"
+            print jumps
             return jumps
         else:
             return moves
@@ -271,23 +296,38 @@ class CheckersGame():
             if node.colour == None:
                 moves.append([self.get_square_for_node(piece),self.get_square_for_node(node)])
             elif nodeDir!=None and nodeDir.colour==None:
-                jumps.append([self.get_square_for_node(piece),self.get_square_for_node(node)])
+                jumps.append([self.get_square_for_node(piece),self.get_square_for_node(nodeDir)])
 
     def get_square_for_node(self, node):
-        return (node.row*4 + node.col + 1)
+        if node:
+            return (node.row*4 + node.col + 1)
+        else:
+            "THIS IS NONE! FAIL"
+            return 0
 
     def get_node_for_square(self, square):
-        return self.listOfNodes[(square-1)/4][(square-1)%4]
+        if square > 0 and square <= 32:
+            return self.listOfNodes[(square-1)/4][(square-1)%4]
+        else:
+            return None
 
     def save_move(self, move):
         output = str(move[0]) + ' - ' + str(move[1])
         print output
         self.output_file.write(output)
+        self.output_file.write('\n')
 
     def undo_move(self, move):
+        self.undo=True
         self.temp_move([move[1],move[0]])
-        node = self.get_node_for_square(self.jumpNode)
-        node.king=self.jumpKing
-        node.king=self.jumpColour
+        self.undo=False
+        if self.jumpNode > 0:
+            node = self.get_node_for_square(self.jumpNode)
+            node.king=self.jumpKing
+            node.colour=self.jumpColour
+
+        if self.undo_king > 0:
+            kingNode = self.get_node_for_square(self.undo_king)
+            kingNode.king = False
 
     
