@@ -1,7 +1,3 @@
-turn ="red"
-jump=0
-listOfNodes = []
-
 ''' BLACK on TOP
 
 1  - 2  - 3  - 4  (BLACK)
@@ -15,6 +11,9 @@ listOfNodes = []
 (MAP OF BOARD)
 
 '''
+class Colour():
+    BLACK = 1
+    RED = 2
 
 class Node():
     row = None
@@ -28,8 +27,8 @@ class Node():
 
 class CheckersGame():
     def __init__(self):
-        self.turn ="red"
-        self.jump=0
+        self.turn = Colour.RED
+        self.jump = 0
         self.listOfNodes = []
         
     ############## INTERFACE FUNCTIONS ################
@@ -70,8 +69,29 @@ class CheckersGame():
             # 4. num red kings
             # 5. num black pieces threatened
             # 6. num red pieces threatened
+            numBlack = 0
+            numRed = 0
+            numBlackKings = 0
+            numRedKings = 0
+            numBlackThreatened = 0
+            numRedThreatened = 0
 
-            
+            for row in self.listOfNodes:
+                for node in row:
+                    if node.colour == Colour.BLACK:
+                        if is_piece_threatened(node):
+                            numBlackThreatened += 1
+                        if node.king:
+                            numBlackKings += 1
+                        else:
+                            numBlack += 1
+                    else:
+                        if is_piece_threatened(node):
+                            numRedThreatened += 1
+                        if node.king:
+                            numRedKings += 1
+                        else:
+                            numRed += 1
 
             self.undo_move(move)
 
@@ -115,9 +135,9 @@ class CheckersGame():
                 newNode.row = i
                 newNode.col = j
                 if i < 3:
-                    newNode.colour = "black"
+                    newNode.colour = Colour.BLACK
                 if i > 4:
-                    newNode.colour = "red"
+                    newNode.colour = Colour.RED
                 row.append(newNode)
             self.listOfNodes.append(row)
                 
@@ -149,9 +169,19 @@ class CheckersGame():
     def create_output_file(self):
         pass
     
-    def is_piece_threatened(self):
-        pass
+    def is_piece_threatened(self, node):
+        return (is_enemy_in_dir(node, node.upRight, Colour.BLACK) or \
+                is_enemy_in_dir(node, node.upLeft, Colour.BLACK) or \
+                is_enemy_in_dir(node, node.downRight, Colour.RED) or \
+                is_enemy_in_dir(node, node.downLeft, Colour.RED))
 
+    def is_enemy_in_dir(self, node, adjacentNode, enemyColour):
+        if adjacentNode != None:
+            if adjacentNode.colour != node.colour:
+                if adjacentNode.colour == enemyColour or adjacentNode.king:
+                    return True
+
+        return False
 
     def check_node_move(self, area):
         if area.king == True:
