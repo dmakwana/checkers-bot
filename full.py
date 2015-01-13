@@ -37,11 +37,11 @@ class CheckersGame():
         
     ############## INTERFACE FUNCTIONS ################
 
-    def startGame(self):
+    def start_game(self):
         self.setup_board()
         self.create_output_file()
 
-    def endGame(self):
+    def end_game(self):
         self.output_file.close()
 
     def possible_moves(self):
@@ -204,7 +204,7 @@ class CheckersGame():
     def get_node_for_square(self, square):
         return self.listOfNodes((square-1)/4,(square-1)%4)
 
-    def save_move(self):
+    def save_move(self, move):
         output = str(move[0]) + ' - ' + str(move[1])
         print output
         self.output_file.write(output)
