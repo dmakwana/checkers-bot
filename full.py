@@ -38,6 +38,21 @@ class CheckersGame():
         self.listOfNodes = []
         self.listOfMoves = []
         self.output_file = None
+
+    def test_function(self):
+        for row in self.listOfNodes:
+            for node in row:
+                print str(self.get_square_for_node(node)) + " - "
+                if node:
+                    if node.upRight:
+                        print self.get_square_for_node(node.upRight)
+                    if node.upLeft:
+                        print self.get_square_for_node(node.upLeft)
+                    if node.downRight:
+                        print self.get_square_for_node(node.downRight)
+                    if node.downLeft:
+                        print self.get_square_for_node(node.downLeft)
+                print "--------"
         
     ############## INTERFACE FUNCTIONS ################
 
@@ -166,20 +181,36 @@ class CheckersGame():
                     upBorder = True
                 if i == 7:
                     downBorder = True
-                if j == 0:
+                if j == 0 and i % 2 == 0:
                     leftBorder = True
-                if j == 3:
+                if j == 3 and i % 2 == 1:
                     rightBorder = True
                 if not upBorder:
                     if not leftBorder:
-                        self.listOfNodes[i][j].upLeft = self.listOfNodes[i-1][j-1]
+                        if i % 2 == 0:
+                            moveIdx = j-1
+                        else:
+                            moveIdx = j
+                        self.listOfNodes[i][j].upLeft = self.listOfNodes[i-1][moveIdx]
                     if not rightBorder:
-                        self.listOfNodes[i][j].upRight = self.listOfNodes[i-1][j+1]
+                        if i % 2 == 1:
+                            moveIdx = j+1
+                        else:
+                            moveIdx = j
+                        self.listOfNodes[i][j].upRight = self.listOfNodes[i-1][moveIdx]
                 if not downBorder:
                     if not leftBorder:
-                        self.listOfNodes[i][j].downLeft = self.listOfNodes[i+1][j-1] 
+                        if i % 2 == 0:
+                            moveIdx = j-1
+                        else:
+                            moveIdx = j
+                        self.listOfNodes[i][j].downLeft = self.listOfNodes[i+1][moveIdx] 
                     if not rightBorder:
-                        self.listOfNodes[i][j].downRight = self.listOfNodes[i+1][j+1]
+                        if i % 2 == 1:
+                            moveIdx = j+1
+                        else:
+                            moveIdx = j
+                        self.listOfNodes[i][j].downRight = self.listOfNodes[i+1][moveIdx]
 
     def create_output_file(self):
         directory  = os.path.join(os.getcwd(), 'gameLogs')
