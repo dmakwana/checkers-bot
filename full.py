@@ -48,7 +48,7 @@ class CheckersGame():
         self.output_file.close()
 
     def possible_moves(self):
-        ## Returns a move (e.g [20,22] (square))
+        ## Returns a list of moves (e.g [20,22] (square))
         self.jump=0
         moves=[]
         jumps_moves=[]
@@ -81,6 +81,7 @@ class CheckersGame():
             state['numRedKings'] = 0
             state['numBlackThreatened'] = 0
             state['numRedThreatened'] = 0
+            states['move'] = move
 
             for row in self.listOfNodes:
                 for node in row:
@@ -108,6 +109,7 @@ class CheckersGame():
         self.jumpColour = None
         self.save_move(move)
 
+    ############## INTERNAL FUNCTIONS###############
 
     def temp_move(self, move):
         ## make sure the move is in list_of_possible_moves
@@ -136,9 +138,6 @@ class CheckersGame():
 
             return True
         return False
-
-
-    ############## INTERNAL FUNCTIONS###############
 
     def setup_board(self):
         for i in range(8):
