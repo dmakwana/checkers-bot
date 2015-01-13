@@ -207,15 +207,34 @@ class CheckersGame():
         if adjacentNode != None:
             if adjacentNode.colour != node.colour:
                 if adjacentNode.colour == enemyColour or adjacentNode.king:
-                    if oppAdjNode != None and oppAdjNode.colour != None
+                    if oppAdjNode != None and oppAdjNode.colour != None:
                         return True
 
         return False
 
-    def check_node_move(self, piece):
-        if piece.king == True:
-            pass
-    # This checks if the move you're about to make is valid
+    def check_node_moves(self, piece):
+        moves=[]
+        jumps=[]
+        if piece.king == True or piece.colour == Colour.BLACK:
+            self.check_node_dir(piece,piece.downLeft,piece.downLeft.downLeft,moves,jumps)
+            self.check_node_dir(piece,piece.downRight,piece.downRight.downRight,moves,jumps)
+
+        if piece.king == True or piece.colour == Colour.RED:
+            self.check_node_dir(piece,piece.upLeft,piece.upLeft.upLeft,moves,jumps)
+            self.check_node_dir(piece,piece.upRight,piece.upRight.upRight,moves,jumps)
+            
+        if len(jumps)!=0:
+            self.jump=1
+            return jumps
+        else:
+            return moves
+
+    def check_node_dir(self, piece, node, nodeDir, moves, jumps):
+        if node.colour!= piece.colour:
+            if node.colour == None:
+                moves.append(self.get_square_for_node(piece),self.get_square_for_node(node))
+            elif nodeDir.colour==None:
+                jumps.append(self.get_square_for_node(piece),self.get_square_for_node(node))
 
     def get_square_for_node(self, node):
         return (node.row*4 + node.col + 1)
