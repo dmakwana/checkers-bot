@@ -60,39 +60,34 @@ class CheckersGame():
         return self.listOfMoves
 
     def get_states_for_list_of_moves(self, listOfMoves):
+        listOfStates = []
         for move in listOfMoves:
             self.move_here(move)
-            ## do calculations
-            # 1. num black pieces
-            # 2. num black kings
-            # 3. num red pieces
-            # 4. num red kings
-            # 5. num black pieces threatened
-            # 6. num red pieces threatened
-            numBlack = 0
-            numRed = 0
-            numBlackKings = 0
-            numRedKings = 0
-            numBlackThreatened = 0
-            numRedThreatened = 0
+            state = {}
+            state['numBlack'] = 0
+            state['numRed'] = 0
+            state['numBlackKings'] = 0
+            state['numRedKings'] = 0
+            state['numBlackThreatened'] = 0
+            state['numRedThreatened'] = 0
 
             for row in self.listOfNodes:
                 for node in row:
                     if node.colour == Colour.BLACK:
                         if is_piece_threatened(node):
-                            numBlackThreatened += 1
+                            state['numBlackThreatened'] += 1
                         if node.king:
-                            numBlackKings += 1
+                            state['numBlackKings'] += 1
                         else:
-                            numBlack += 1
+                            state['numBlack'] += 1
                     else:
                         if is_piece_threatened(node):
-                            numRedThreatened += 1
+                            state['numRedThreatened'] += 1
                         if node.king:
-                            numRedKings += 1
+                            state['numRedKings'] += 1
                         else:
-                            numRed += 1
-
+                            state['numRed'] += 1
+            listOfStates.append(state)
             self.undo_move(move)
 
     def move_here(self, move):
@@ -185,7 +180,7 @@ class CheckersGame():
 
     def check_node_move(self, area):
         if area.king == True:
-            pass   
+            pass
     # This checks if the move you're about to make is valid
 
     def get_square_for_node(self, node):
