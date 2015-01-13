@@ -36,6 +36,7 @@ class CheckersGame():
         self.jumpColour=None
         self.jumpKing=False
         self.listOfNodes = []
+        self.listOfMoves = []
         self.output_file = None
         
     ############## INTERFACE FUNCTIONS ################
@@ -52,28 +53,28 @@ class CheckersGame():
         self.jump=0
         moves=[]
         jumps_moves=[]
-        listOfMoves = []
+        self.listOfMoves = []
 
-        for nodeRow in listOfNodes:
+        for nodeRow in self.listOfNodes:
             for piece in nodeRow:
-                if piece.colour == turn:
-                    tempMoves=self.check_node_move(piece)
+                if piece.colour == self.turn:
+                    tempMoves=self.check_node_moves(piece)
                     if self.jump == 0:
-                        moves.append(tempMoves)
+                        moves.extend(tempMoves)
                     else:
-                        jumps_moves.append(tempMoves)
+                        jumps_moves.extend(tempMoves)
 
         if self.jump == 0:
-            listOfMoves = moves
+            self.listOfMoves = moves
         else:
-            listOfMoves = jumps_moves
+            self.listOfMoves = jumps_moves
 
         return self.listOfMoves
 
     def get_states_for_list_of_moves(self, listOfMoves):
         listOfStates = []
         for move in listOfMoves:
-            self.temp_here(move)
+            self.temp_move(move)
             state = {}
             state['numBlack'] = 0
             state['numRed'] = 0
@@ -81,19 +82,19 @@ class CheckersGame():
             state['numRedKings'] = 0
             state['numBlackThreatened'] = 0
             state['numRedThreatened'] = 0
-            states['move'] = move
+            state['move'] = move
 
             for row in self.listOfNodes:
                 for node in row:
                     if node.colour == Colour.BLACK:
-                        if is_piece_threatened(node):
+                        if self.is_piece_threatened(node):
                             state['numBlackThreatened'] += 1
                         if node.king:
                             state['numBlackKings'] += 1
                         else:
                             state['numBlack'] += 1
                     else:
-                        if is_piece_threatened(node):
+                        if self.is_piece_threatened(node):
                             state['numRedThreatened'] += 1
                         if node.king:
                             state['numRedKings'] += 1
@@ -101,6 +102,8 @@ class CheckersGame():
                             state['numRed'] += 1
             listOfStates.append(state)
             self.undo_move(move)
+
+        return listOfStates
 
     def move_here(self, move):
         self.temp_move(move)
@@ -169,14 +172,14 @@ class CheckersGame():
                     rightBorder = True
                 if not upBorder:
                     if not leftBorder:
-                        upLeft = self.listOfNodes[i-1][j-1]
+                        self.listOfNodes[i][j].upLeft = self.listOfNodes[i-1][j-1]
                     if not rightBorder:
-                        upRight = self.listOfNodes[i-1][j+1]
+                        self.listOfNodes[i][j].upRight = self.listOfNodes[i-1][j+1]
                 if not downBorder:
                     if not leftBorder:
-                        downLeft = self.listOfNodes[i+1][j-1] 
+                        self.listOfNodes[i][j].downLeft = self.listOfNodes[i+1][j-1] 
                     if not rightBorder:
-                        downRight = self.listOfNodes[i+1][j+1]
+                        self.listOfNodes[i][j].downRight = self.listOfNodes[i+1][j+1]
 
     def create_output_file(self):
         directory  = os.path.join(os.getcwd(), 'gameLogs')
@@ -197,10 +200,10 @@ class CheckersGame():
         node.king = False
 
     def is_piece_threatened(self, node):
-        return (is_enemy_in_dir(node, node.upRight, Colour.BLACK, node.downLeft) or \
-                is_enemy_in_dir(node, node.upLeft, Colour.BLACK, node.downRight) or \
-                is_enemy_in_dir(node, node.downRight, Colour.RED, node.upLeft) or \
-                is_enemy_in_dir(node, node.downLeft, Colour.RED, node.upRight))
+        return (self.is_enemy_in_dir(node, node.upRight, Colour.BLACK, node.downLeft) or \
+                self.is_enemy_in_dir(node, node.upLeft, Colour.BLACK, node.downRight) or \
+                self.is_enemy_in_dir(node, node.downRight, Colour.RED, node.upLeft) or \
+                self.is_enemy_in_dir(node, node.downLeft, Colour.RED, node.upRight))
 
     def is_enemy_in_dir(self, node, adjacentNode, enemyColour, oppAdjNode):
         if adjacentNode != None:
@@ -215,12 +218,16 @@ class CheckersGame():
         moves=[]
         jumps=[]
         if piece.king == True or piece.colour == Colour.BLACK:
-            self.check_node_dir(piece,piece.downLeft,piece.downLeft.downLeft,moves,jumps)
-            self.check_node_dir(piece,piece.downRight,piece.downRight.downRight,moves,jumps)
+            if piece.downLeft != None:
+                self.check_node_dir(piece,piece.downLeft,piece.downLeft.downLeft,moves,jumps)
+            if piece.downRight != None:
+                self.check_node_dir(piece,piece.downRight,piece.downRight.downRight,moves,jumps)
 
         if piece.king == True or piece.colour == Colour.RED:
-            self.check_node_dir(piece,piece.upLeft,piece.upLeft.upLeft,moves,jumps)
-            self.check_node_dir(piece,piece.upRight,piece.upRight.upRight,moves,jumps)
+            if piece.upLeft != None:
+                self.check_node_dir(piece,piece.upLeft,piece.upLeft.upLeft,moves,jumps)
+            if piece.upRight != None:
+                self.check_node_dir(piece,piece.upRight,piece.upRight.upRight,moves,jumps)
             
         if len(jumps)!=0:
             self.jump=1
@@ -231,15 +238,15 @@ class CheckersGame():
     def check_node_dir(self, piece, node, nodeDir, moves, jumps):
         if node.colour!= piece.colour:
             if node.colour == None:
-                moves.append(self.get_square_for_node(piece),self.get_square_for_node(node))
-            elif nodeDir.colour==None:
-                jumps.append(self.get_square_for_node(piece),self.get_square_for_node(node))
+                moves.append([self.get_square_for_node(piece),self.get_square_for_node(node)])
+            elif nodeDir!=None and nodeDir.colour==None:
+                jumps.append([self.get_square_for_node(piece),self.get_square_for_node(node)])
 
     def get_square_for_node(self, node):
         return (node.row*4 + node.col + 1)
 
     def get_node_for_square(self, square):
-        return self.listOfNodes((square-1)/4,(square-1)%4)
+        return self.listOfNodes[(square-1)/4][(square-1)%4]
 
     def save_move(self, move):
         output = str(move[0]) + ' - ' + str(move[1])
