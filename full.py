@@ -4,8 +4,8 @@ listOfNodes = []
 
 ''' BLACK on TOP
 
-1  - 2  - 3  - 4 (BLACK)
-5  - 6  - 7  - 8 (BLACK)
+1  - 2  - 3  - 4  (BLACK)
+5  - 6  - 7  - 8  (BLACK)
 9  - 10 - 11 - 12 (BLACK)
 13 - 14 - 15 - 16
 17 - 18 - 19 - 20
@@ -39,7 +39,7 @@ class CheckersGame():
         self.setup_board()
 
     def possible_moves(self):
-        ## Returns a move (e.g 20-22 (square))
+        ## Returns a move (e.g [20,22] (square))
         moves=[]
         jumps_moves=[]
         
@@ -59,14 +59,26 @@ class CheckersGame():
 
         return self.listOfMoves
 
-    def get_state_for_move(self):
-        pass
+    def get_states_for_list_of_moves(self, list_of_moves):
+        for move in list_of_moves:
+            self.move_here(move)
+            ## do calculations
+            # 1. num black pieces
+            # 2. num black kings
+            # 3. num red pieces
+            # 4. num red kings
+            # 5. num black pieces threatened
+            # 6. num red pieces threatened
+
+            
+
+            self.undo_move(move)
 
     def move_here(self, move):
         ## make sure the move is in list_of_possible_moves
         if move in self.listOfMoves:
+            oldNode = get_node_for_square(move[0])
             newNode = get_node_for_square(move[1])
-            oldNode = get_node_for_square(move[1])
 
             newNode.king = oldNode.king
             oldNode.king = None
@@ -74,8 +86,8 @@ class CheckersGame():
             newNode.colour =  oldNode.colour
             oldNode.colour =  None
 
-            return -1
-        return 0
+            return True
+        return False
 
 
     ############## INTERNAL FUNCTIONS###############
@@ -137,10 +149,10 @@ class CheckersGame():
     def get_node_for_square(self, square):
         return self.listOfNodes((square-1)/4,(square-1)%4)
 
-
-
     def save_move(self):
         pass
 
-    
+    def undo_move(self, move):
+        self.move_here([move[1],move[0]])
+
     
