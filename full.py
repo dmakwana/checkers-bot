@@ -41,14 +41,15 @@ class CheckersGame():
         self.listOfMoves = []
         self.outputFile = None
         self.numberOfMoves = 0
-        self.currentState = {}
         self.lastCompletedMove = None
+        self.gameRunning = False
         
     ############## INTERFACE FUNCTIONS ################
 
     def start_game(self):
         self.setup_board()
         self.create_output_file()
+        self.gameRunning = True
 
     def end_game(self):
         print "Total number of moves: " + str(self.numberOfMoves)
@@ -101,6 +102,10 @@ class CheckersGame():
             self.save_move(move)
             self.lastCompletedMove = move
             self.switch_turn()
+            ### Check game done condition
+            state = self.get_current_state(self.lastCompletedMove)
+            if state['numRed'] == 0 or state['numBlack'] == 0:
+                self.gameRunning = False
             return True
 
         return False
