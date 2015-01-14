@@ -39,7 +39,10 @@ class CheckersGame():
         self.undo = False
         self.listOfNodes = []
         self.listOfMoves = []
-        self.output_file = None
+        self.outputFile = None
+        self.numberOfMoves = 0
+        self.currentState = {}
+        self.lastCompletedMove = None
         
     ############## INTERFACE FUNCTIONS ################
 
@@ -48,7 +51,9 @@ class CheckersGame():
         self.create_output_file()
 
     def end_game(self):
-        self.output_file.close()
+        print "Total number of moves: " + str(self.numberOfMoves)
+        print "Final State: " + str(self.get_current_state(self.lastCompletedMove))
+        self.outputFile.close()
 
     def possible_moves(self):
         ## Returns a list of moves (e.g [20,22] (square))
@@ -73,32 +78,7 @@ class CheckersGame():
         listOfStates = []
         for move in listOfMoves:
             self.temp_move(move)
-            state = {}
-            state['numBlack'] = 0
-            state['numRed'] = 0
-            state['numBlackKings'] = 0
-            state['numRedKings'] = 0
-            state['numBlackThreatened'] = 0
-            state['numRedThreatened'] = 0
-            state['move'] = move
-
-            for row in self.listOfNodes:
-                for node in row:
-                    if node.colour == Colour.BLACK:
-                        if self.is_piece_threatened(node):
-                            state['numBlackThreatened'] += 1
-                        if node.king:
-                            state['numBlackKings'] += 1
-                        else:
-                            state['numBlack'] += 1
-                    else:
-                        if self.is_piece_threatened(node):
-                            state['numRedThreatened'] += 1
-                        if node.king:
-                            state['numRedKings'] += 1
-                        else:
-                            state['numRed'] += 1
-            listOfStates.append(state)
+            listOfStates.append(self.get_current_state(move))
             self.undo_move(move)
 
         return listOfStates
@@ -112,11 +92,42 @@ class CheckersGame():
             self.jumpColour = None
             self.undo_king = 0
             self.permenant = False
+            self.numberOfMoves += 1
             self.save_move(move)
+            self.lastCompletedMove = move
             self.switch_turn()
             return True
 
         return False
+
+    def get_current_state(self, move = None):
+        state = {}
+        state['numBlack'] = 0
+        state['numRed'] = 0
+        state['numBlackKings'] = 0
+        state['numRedKings'] = 0
+        state['numBlackThreatened'] = 0
+        state['numRedThreatened'] = 0
+        state['move'] = move
+
+        for row in self.listOfNodes:
+            for node in row:
+                if node.colour == Colour.BLACK:
+                    if self.is_piece_threatened(node,move):
+                        state['numBlackThreatened'] += 1
+                    if node.king:
+                        state['numBlackKings'] += 1
+                    else:
+                        state['numBlack'] += 1
+                elif node.colour == Colour.RED:
+                    if self.is_piece_threatened(node,move):
+                        state['numRedThreatened'] += 1
+                    if node.king:
+                        state['numRedKings'] += 1
+                    else:
+                        state['numRed'] += 1
+
+        return state
 
 
     ############## INTERNAL FUNCTIONS###############
@@ -224,29 +235,29 @@ class CheckersGame():
             os.makedirs(directory)
 
         file_path = os.path.join(directory, 'checkers' + time.strftime("%Y%m%d-%H%M%S"))
-        self.output_file = open(file_path, 'w+')
+        self.outputFile = open(file_path, 'w+')
 
     
     def copy_node_piece(self, node):
         self.jumpNode = self.get_square_for_node(node);
-        self.jumpColour =  node.colour
+        self.jumpColour = node.colour
         self.jumpKing = node.king
 
     def delete_node_piece(self, node):
         node.colour = None
         node.king = False
 
-    def is_piece_threatened(self, node):
-        return (self.is_enemy_in_dir(node, node.upRight, Colour.BLACK, node.downLeft) or \
-                self.is_enemy_in_dir(node, node.upLeft, Colour.BLACK, node.downRight) or \
-                self.is_enemy_in_dir(node, node.downRight, Colour.RED, node.upLeft) or \
-                self.is_enemy_in_dir(node, node.downLeft, Colour.RED, node.upRight))
+    def is_piece_threatened(self, node, move):
+        return (self.is_enemy_in_dir(node, node.upRight, Colour.BLACK, node.downLeft,move) or \
+                self.is_enemy_in_dir(node, node.upLeft, Colour.BLACK, node.downRight,move) or \
+                self.is_enemy_in_dir(node, node.downRight, Colour.RED, node.upLeft,move) or \
+                self.is_enemy_in_dir(node, node.downLeft, Colour.RED, node.upRight,move))
 
-    def is_enemy_in_dir(self, node, adjacentNode, enemyColour, oppAdjNode):
+    def is_enemy_in_dir(self, node, adjacentNode, enemyColour, oppAdjNode,move):
         if adjacentNode != None:
             if adjacentNode.colour != node.colour:
                 if adjacentNode.colour == enemyColour or adjacentNode.king:
-                    if oppAdjNode != None and oppAdjNode.colour != None:
+                    if oppAdjNode != None and oppAdjNode.colour == None:
                         return True
 
         return False
@@ -293,8 +304,8 @@ class CheckersGame():
     def save_move(self, move):
         output = str(move[0]) + ' - ' + str(move[1])
         print output
-        self.output_file.write(output)
-        self.output_file.write('\n')
+        self.outputFile.write(output)
+        self.outputFile.write('\n')
 
     def undo_move(self, move):
         self.undo=True
@@ -303,6 +314,8 @@ class CheckersGame():
         if self.jumpNode > 0:
             node = self.get_node_for_square(self.jumpNode)
             node.king=self.jumpKing
+            if self.jumpColour == None:
+                print "SETTING SOMETHING TO NONE"
             node.colour=self.jumpColour
 
         if self.undo_king > 0:
