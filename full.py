@@ -52,7 +52,12 @@ class CheckersGame():
 
     def end_game(self):
         print "Total number of moves: " + str(self.numberOfMoves)
-        print "Final State: " + str(self.get_current_state(self.lastCompletedMove))
+        finalState = self.get_current_state(self.lastCompletedMove)
+        print "Final State: " + str(finalState)
+        if finalState['numRed'] == 0:
+            print "Black Wins"
+        else:
+            print "Red Wins"
         self.outputFile.close()
 
     def possible_moves(self):
@@ -113,14 +118,14 @@ class CheckersGame():
         for row in self.listOfNodes:
             for node in row:
                 if node.colour == Colour.BLACK:
-                    if self.is_piece_threatened(node,move):
+                    if self.is_piece_threatened(node):
                         state['numBlackThreatened'] += 1
                     if node.king:
                         state['numBlackKings'] += 1
                     else:
                         state['numBlack'] += 1
                 elif node.colour == Colour.RED:
-                    if self.is_piece_threatened(node,move):
+                    if self.is_piece_threatened(node):
                         state['numRedThreatened'] += 1
                     if node.king:
                         state['numRedKings'] += 1
@@ -292,7 +297,6 @@ class CheckersGame():
         if node:
             return (node.row*4 + node.col + 1)
         else:
-            "THIS IS NONE! FAIL"
             return 0
 
     def get_node_for_square(self, square):
@@ -314,8 +318,6 @@ class CheckersGame():
         if self.jumpNode > 0:
             node = self.get_node_for_square(self.jumpNode)
             node.king=self.jumpKing
-            if self.jumpColour == None:
-                print "SETTING SOMETHING TO NONE"
             node.colour=self.jumpColour
 
         if self.undo_king > 0:

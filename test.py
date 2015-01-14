@@ -1,4 +1,3 @@
-# test.py
 from full import CheckersGame
 import random
 from time import sleep
