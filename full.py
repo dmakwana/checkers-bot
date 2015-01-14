@@ -247,13 +247,13 @@ class CheckersGame():
         node.colour = None
         node.king = False
 
-    def is_piece_threatened(self, node, move):
-        return (self.is_enemy_in_dir(node, node.upRight, Colour.BLACK, node.downLeft,move) or \
-                self.is_enemy_in_dir(node, node.upLeft, Colour.BLACK, node.downRight,move) or \
-                self.is_enemy_in_dir(node, node.downRight, Colour.RED, node.upLeft,move) or \
-                self.is_enemy_in_dir(node, node.downLeft, Colour.RED, node.upRight,move))
+    def is_piece_threatened(self, node):
+        return (self.is_enemy_in_dir(node, node.upRight, Colour.BLACK, node.downLeft) or \
+                self.is_enemy_in_dir(node, node.upLeft, Colour.BLACK, node.downRight) or \
+                self.is_enemy_in_dir(node, node.downRight, Colour.RED, node.upLeft) or \
+                self.is_enemy_in_dir(node, node.downLeft, Colour.RED, node.upRight))
 
-    def is_enemy_in_dir(self, node, adjacentNode, enemyColour, oppAdjNode,move):
+    def is_enemy_in_dir(self, node, adjacentNode, enemyColour, oppAdjNode):
         if adjacentNode != None:
             if adjacentNode.colour != node.colour:
                 if adjacentNode.colour == enemyColour or adjacentNode.king:
