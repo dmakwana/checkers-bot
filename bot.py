@@ -15,6 +15,11 @@ import os
 from full import CheckersGame
 from full import Colour
 import sys
+import random
+
+class Weights():
+	def __init__(self):
+		self.values = []
 
 class DoubleBotRunner():
 	def __init__(self):
@@ -22,10 +27,10 @@ class DoubleBotRunner():
 		self.file =  None
 		self.file_path = None
 		self.create_weight_file()
-		self.weights = []
+		self.weights = Weights()
 		self.get_weights()
 		self.bot1 = CheckersBot(self.weights, self.game, Colour.BLACK)
-		self.bot2 = CheckersBot(self.weights, self.game, Colour.RED)
+		self.bot2 = CheckersBot(self.weights, self.game, Colour.RED, dumb = True)
 
 
 	def run(self):
@@ -35,8 +40,8 @@ class DoubleBotRunner():
 			if self.game.gameRunning:
 				self.bot2.play_turn()
 
-		print "Bot 1 Variables: ", self.bot1.weights[0], self.bot1.weights[1], self.bot1.weights[2], self.bot1.weights[3], self.bot1.weights[4], self.bot1.weights[5]
-		print "Bot 2 Variables: ", self.bot2.weights[0], self.bot2.weights[1], self.bot2.weights[2], self.bot2.weights[3], self.bot2.weights[4], self.bot2.weights[5]
+		print "Bot 1 Variables: ", self.bot1.weights.values[0], self.bot1.weights.values[1], self.bot1.weights.values[2], self.bot1.weights.values[3], self.bot1.weights.values[4], self.bot1.weights.values[5]
+		print "Bot 2 Variables: ", self.bot2.weights.values[0], self.bot2.weights.values[1], self.bot2.weights.values[2], self.bot2.weights.values[3], self.bot2.weights.values[4], self.bot2.weights.values[5]
 
 		self.update_weight_file()
 		self.game.end_game()
@@ -52,7 +57,7 @@ class DoubleBotRunner():
 			self.file = open(self.file_path, 'r')
 		else:
 			self.file = open(self.file_path, 'w+')
-			defaultWeight = 10
+			defaultWeight = 1
 			for i in range(6):
 				self.file.write(str(defaultWeight)+'\n')
 		self.file.close()
@@ -60,19 +65,19 @@ class DoubleBotRunner():
 	def get_weights(self):
 		self.file = open(self.file_path, 'r')
 		for line in self.file.readlines():
-			self.weights.append(int(line.strip()))
+			self.weights.values.append(float(line.strip()))
 		self.file.close()
 
 	def update_weight_file(self):
 		self.file = open(self.file_path, 'w+')
-		for weight in self.weights:
+		for weight in self.weights.values:
 			self.file.write(str(weight)+'\n')
 		self.file.close()
 
 class CheckersBot():
-	def __init__(self, weights, game, colour, n = 1):
+	def __init__(self, weights, game, colour, n = 0.1, dumb = False):
 		self.weights = weights
-		self.staticWeights = list(weights)
+		self.staticWeights = list(self.weights.values)
 		self.variables = [0,0,0,0,0,0]
 		self.game = game
 		self.colour = colour
@@ -80,6 +85,7 @@ class CheckersBot():
 		self.wonGame = True
 		self.gameRunning = True
 		self.n = n
+		self.dumb = dumb
 
 	def play_turn(self):
 		moves = self.game.possible_moves()
@@ -90,19 +96,22 @@ class CheckersBot():
 			return
 		else:
 			states = self.game.get_states_for_list_of_moves(moves)
-			self.state_to_variables(states[0])
-			score = self.calc_score_for_state(states[0])
-			stateChosen=states[0]
-			for state in states:
-				self.state_to_variables(state)
-				if self.calc_score_for_state(state)>score:
-					score = self.calc_score_for_state(state)
-					stateChosen = state
+			if not self.dumb:
+				self.state_to_variables(states[0])
+				score = self.calc_score_for_state(states[0])
+				stateChosen=states[0]
+				for state in states:
+					self.state_to_variables(state)
+					if self.calc_score_for_state(state)>score:
+						score = self.calc_score_for_state(state)
+						stateChosen = state
 
-			if self.previousState:
-				self.state_to_variables(self.previousState)
-				print "Score is " + str(score)
-				self.update_weights(score)
+				if self.previousState:
+					self.state_to_variables(self.previousState)
+					print "Score is " + str(score)
+					self.update_weights(score)
+			else:
+				stateChosen = random.choice(states)
 			self.previousState= stateChosen
 			self.game.move_here(stateChosen["move"])
 
@@ -122,8 +131,8 @@ class CheckersBot():
 		return totalScore
 
 	def update_weights (self, score):
-		for weight in self.weights:
-			weight += self.n*(score-self.calc_score_for_state(self.previousState))*self.variables[self.weights.index(weight)]
+		for i in range(len(self.weights.values)):
+			self.weights.values[i] += self.n*(score-self.calc_score_for_state(self.previousState))*self.variables[i]
 			print "The new weight " + str(score-self.calc_score_for_state(self.previousState))
 
 
