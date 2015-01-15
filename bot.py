@@ -18,11 +18,11 @@ from full import Colour
 class DoubleBotRunner():
 	def __init__():
 		self.game = CheckersGame()
-		self.create_weight_file(1,1,1,1,1)
+		self.create_weight_file()
 		self.outputFile =  None
 		self.weights = self.get_weights()
-		self.bot1 = CheckersBot(self.weights[1], self.weights[2], self.weights[3], self.weights[4], self.weights[5], self.weights[6], game, Colour.BLACK)
-		self.bot2 = CheckersBot(self.weights[1], self.weights[2], self.weights[3], self.weights[4], self.weights[5], self.weights[6], game, Colour.RED)
+		self.bot1 = CheckersBot(self.weights, game, Colour.BLACK)
+		self.bot2 = CheckersBot(self.weights, game, Colour.RED)
 
 	def run(self):
 		while self.game.gameRunning:
@@ -36,7 +36,7 @@ class DoubleBotRunner():
 		self.update_weight_file()
 		game.end_game()
 
-	def create_weight_file(self, w1, w2, w3, w4, w5):
+	def create_weight_file(self):
 		directory  = os.path.join(os.getcwd(), 'weights')
 		if not os.path.exists(directory):
 			os.makedirs(directory)
@@ -47,11 +47,13 @@ class DoubleBotRunner():
 			self.outputFile = open(file_path, 'r')
 		else:
 			self.outputFile = open(file_path, 'w+')
-			self.outputFile.write(w1+'\n')
-			self.outputFile.write(w2+'\n')
-			self.outputFile.write(w3+'\n')
-			self.outputFile.write(w4+'\n')
-			self.outputFile.write(w5+'\n')
+			defaultWeight = 1
+			self.outputFile.write(defaultWeight+'\n')
+			self.outputFile.write(defaultWeight+'\n')
+			self.outputFile.write(defaultWeight+'\n')
+			self.outputFile.write(defaultWeight+'\n')
+			self.outputFile.write(defaultWeight+'\n')
+			self.outputFile.write(defaultWeight+'\n')
 
 	def get_weights(self):
 		weights = outputFile.readlines()
@@ -65,19 +67,16 @@ class DoubleBotRunner():
 		self.outputFile.close()
 
 class CheckersBot():
-	def __init__(w1, w2, w3, w4, w5, w6, game, colour):
-		self.w1 = w1
-		self.w2 = w2
-		self.w3 = w3
-		self.w4 = w4
-		self.w5 = w5
-		self.w6 = w6
+	def __init__(weights, game, colour, n = 1):
+		self.weights = weights
+		self.staticWeights = list(weights)
+		self.variables = [0,0,0,0,0,0]
 		self.game = game
 		self.colour = colour
 		self.previousState = None
 		self.wonGame = True
 		self.gameRunning = True
-
+		self.n = n
 
 	def play_turn(self):
 		moves = game.possible_moves()
@@ -88,28 +87,35 @@ class CheckersBot():
 			return
 		else:
 			states = game.get_states_for_list_of_moves(moves)
-			score = self.calc_weight_for_state(states[1])
+			score = self.calc_score_for_state(states[1])
 			stateChosen=state[1]
 			for state in states:
-				if self.calc_weight_for_state(state)>score:
-					score = self.calc_weight_for_state
+				if self.calc_score_for_state(state)>score:
+					score = self.calc_score_for_state
 					stateChosen = state
 
 			if self.previousState:
-				self.update_weights(previousState,score)
+				self.update_weights(score)
 			self.previousState= stateChosen
 
+	def state_to_variables(self, state):
+		self.variables[0] = state['numBlack']
+		self.variables[1] = state['numRed']
+		self.variables[2] = state['numBlackKings']
+		self.variables[3] = state['numRedKings']
+		self.variables[4] = state['numBlackThreatened']
+		self.variables[5] = state['numRedThreatened']
+
+	def calc_score_for_state(self, state):
+		totalScore = 0
+		for weight in self.staticWeights:
+			totalScore += weight*variables[self.staticWeights.index(weight)]
+		return totalScore
+
+	def update_weights (self, score):
+		for weight in self.weights:
+			weight += self.n*(score-self.calc_score_for_state(self.previousState))*variables[self.weights.index(weight)]
 
 
-	def calc_weight_for_state(self, state):
-		return (state['numBlack']*self.w1 + state['numRed']*self.w2 + state['numBlackKings']*self.w3 + \
-				state['numRedKings']*self.w4 + state['numBlackThreatened']*self.w5 + state['numRedThreatened']*self.w6)
-
-	def update_weights (self,state, score):
-		DoubleBotRunner.weights[1]=DoubleBotRunner.weights[1] + DoubleBotRunner.n*(score-self.calc_weight_for_state(state))#*x1
-		DoubleBotRunner.weights[2]=DoubleBotRunner.weights[2] + DoubleBotRunner.n*(score-self.calc_weight_for_state(state))#*x2
-		DoubleBotRunner.weights[3]=DoubleBotRunner.weights[3] + DoubleBotRunner.n*(score-self.calc_weight_for_state(state))#*x3
-		DoubleBotRunner.weights[4]=DoubleBotRunner.weights[4] + DoubleBotRunner.n*(score-self.calc_weight_for_state(state))#*x4
-		DoubleBotRunner.weights[5]=DoubleBotRunner.weights[5] + DoubleBotRunner.n*(score-self.calc_weight_for_state(state))#*x5
 
 
