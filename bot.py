@@ -57,7 +57,7 @@ class DoubleBotRunner():
 			self.file = open(self.file_path, 'r')
 		else:
 			self.file = open(self.file_path, 'w+')
-			defaultWeight = 1
+			defaultWeight = 0.1
 			for i in range(6):
 				self.file.write(str(defaultWeight)+'\n')
 		self.file.close()
@@ -67,11 +67,15 @@ class DoubleBotRunner():
 		for line in self.file.readlines():
 			self.weights.values.append(float(line.strip()))
 		self.file.close()
+		print self.weights.values
 
 	def update_weight_file(self):
+		total_weight=0
 		self.file = open(self.file_path, 'w+')
 		for weight in self.weights.values:
-			self.file.write(str(weight)+'\n')
+			total_weight+=abs(weight)
+		for weight in self.weights.values:
+			self.file.write(str(weight/total_weight)+'\n')
 		self.file.close()
 
 class CheckersBot():
@@ -108,17 +112,19 @@ class CheckersBot():
 
 				if self.previousState:
 					self.state_to_variables(self.previousState)
-					print "Score is " + str(score)
 					self.update_weights(score)
+				print "Ai chose " + str(stateChosen)
+				print "score for state is" +str(score)
+				print self.weights.values
 			else:
 				stateChosen = random.choice(states)
+				print "Dumb bot chose"+ str(stateChosen)
 			self.previousState= stateChosen
 			self.game.move_here(stateChosen["move"])
 
 	def state_to_variables(self, state):
-
-		self.variables[0+self.colour] = state['numBlack']
-		self.variables[1-self.colour] = state['numRed']
+		self.variables[0+self.colour] = state['numBlack']-state['numRed']
+		self.variables[1-self.colour] = state['numRed']-state['numBlack']
 		self.variables[2+self.colour] = state['numBlackKings']
 		self.variables[3-self.colour] = state['numRedKings']
 		self.variables[4+self.colour] = state['numBlackThreatened']
@@ -133,8 +139,6 @@ class CheckersBot():
 	def update_weights (self, score):
 		for i in range(len(self.weights.values)):
 			self.weights.values[i] += self.n*(score-self.calc_score_for_state(self.previousState))*self.variables[i]
-			print "The new weight " + str(score-self.calc_score_for_state(self.previousState))
-
 
 
 

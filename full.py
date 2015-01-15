@@ -312,7 +312,7 @@ class CheckersGame():
 
     def save_move(self, move):
         output = str(move[0]) + ' - ' + str(move[1])
-        print output
+        #print output
         self.outputFile.write(output)
         self.outputFile.write('\n')
 
