@@ -15,8 +15,8 @@ import time
 
 '''
 class Colour():
-    BLACK = 1
-    RED = 2
+    BLACK = 0
+    RED = 1
 
 class Node():
     row = None

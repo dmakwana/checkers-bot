@@ -14,60 +14,64 @@ w6 - numRedThreatened
 import os
 from full import CheckersGame
 from full import Colour
+import sys
 
 class DoubleBotRunner():
-	def __init__():
+	def __init__(self):
 		self.game = CheckersGame()
+		self.file =  None
+		self.file_path = None
 		self.create_weight_file()
-		self.outputFile =  None
-		self.weights = self.get_weights()
-		self.bot1 = CheckersBot(self.weights, game, Colour.BLACK)
-		self.bot2 = CheckersBot(self.weights, game, Colour.RED)
+		self.weights = []
+		self.get_weights()
+		print len(self.weights)
+		self.bot1 = CheckersBot(self.weights, self.game, Colour.BLACK)
+		self.bot2 = CheckersBot(self.weights, self.game, Colour.RED)
 
 	def run(self):
+		self.game.start_game()
 		while self.game.gameRunning:
 			self.bot1.play_turn()
 			if self.game.gameRunning:
 				self.bot2.play_turn()
 
-		print "Bot 1 Variables: ", bot1.w1, bot1.w2, bot1.w3, bot1.w4, bot1.w5, bot1.w6
-		print "Bot 2 Variables: ", bot2.w1, bot2.w2, bot2.w3, bot2.w4, bot2.w5, bot2.w6
+		print "Bot 1 Variables: ", self.bot1.weights[0], self.bot1.weights[1], self.bot1.weights[2], self.bot1.weights[3], self.bot1.weights[4], self.bot1.weights[5]
+		print "Bot 2 Variables: ", self.bot2.weights[0], self.bot2.weights[1], self.bot2.weights[2], self.bot2.weights[3], self.bot2.weights[4], self.bot2.weights[5]
 
 		self.update_weight_file()
-		game.end_game()
+		self.game.end_game()
 
 	def create_weight_file(self):
 		directory  = os.path.join(os.getcwd(), 'weights')
 		if not os.path.exists(directory):
 			os.makedirs(directory)
 
-		file_path = os.path.join(directory, 'checkers_weights')
-		write = os.path.exists(file_path)
+		self.file_path = os.path.join(directory, 'checkers_weights')
+		write = os.path.exists(self.file_path)
+		print write
 		if write:
-			self.outputFile = open(file_path, 'r')
+			self.file = open(self.file_path, 'r')
 		else:
-			self.outputFile = open(file_path, 'w+')
+			self.file = open(self.file_path, 'w+')
 			defaultWeight = 1
-			self.outputFile.write(defaultWeight+'\n')
-			self.outputFile.write(defaultWeight+'\n')
-			self.outputFile.write(defaultWeight+'\n')
-			self.outputFile.write(defaultWeight+'\n')
-			self.outputFile.write(defaultWeight+'\n')
-			self.outputFile.write(defaultWeight+'\n')
+			for i in range(6):
+				self.file.write(str(defaultWeight)+'\n')
+		self.file.close()
 
 	def get_weights(self):
-		weights = outputFile.readlines()
-		self.outputFile.close()
-		return weights
+		self.file = open(self.file_path, 'r')
+		for line in self.file.readlines():
+			self.weights.append(int(line.strip()))
+		self.file.close()
 
 	def update_weight_file(self):
-		self.outputFile = open(file_path, 'w+')
+		self.file = open(self.file_path, 'w+')
 		for weight in self.weights:
-			self.outputFile.write(weight+'\n')
-		self.outputFile.close()
+			self.file.write(str(weight)+'\n')
+		self.file.close()
 
 class CheckersBot():
-	def __init__(weights, game, colour, n = 1):
+	def __init__(self, weights, game, colour, n = 1):
 		self.weights = weights
 		self.staticWeights = list(weights)
 		self.variables = [0,0,0,0,0,0]
@@ -79,16 +83,16 @@ class CheckersBot():
 		self.n = n
 
 	def play_turn(self):
-		moves = game.possible_moves()
+		moves = self.game.possible_moves()
 		
 		if len(moves) == 0:
 			self.gameRunning = False
 			self.wonGame = False
 			return
 		else:
-			states = game.get_states_for_list_of_moves(moves)
+			states = self.game.get_states_for_list_of_moves(moves)
 			score = self.calc_score_for_state(states[1])
-			stateChosen=state[1]
+			stateChosen=states[1]
 			for state in states:
 				if self.calc_score_for_state(state)>score:
 					score = self.calc_score_for_state
@@ -99,22 +103,23 @@ class CheckersBot():
 			self.previousState= stateChosen
 
 	def state_to_variables(self, state):
-		self.variables[0] = state['numBlack']
-		self.variables[1] = state['numRed']
-		self.variables[2] = state['numBlackKings']
-		self.variables[3] = state['numRedKings']
-		self.variables[4] = state['numBlackThreatened']
-		self.variables[5] = state['numRedThreatened']
+
+		self.variables[0+self.colour] = state['numBlack']
+		self.variables[1-self.colour] = state['numRed']
+		self.variables[2+self.colour] = state['numBlackKings']
+		self.variables[3-self.colour] = state['numRedKings']
+		self.variables[4+self.colour] = state['numBlackThreatened']
+		self.variables[5-self.colour] = state['numRedThreatened']
 
 	def calc_score_for_state(self, state):
 		totalScore = 0
 		for weight in self.staticWeights:
-			totalScore += weight*variables[self.staticWeights.index(weight)]
+			totalScore += weight*self.variables[self.staticWeights.index(weight)]
 		return totalScore
 
 	def update_weights (self, score):
 		for weight in self.weights:
-			weight += self.n*(score-self.calc_score_for_state(self.previousState))*variables[self.weights.index(weight)]
+			weight += self.n*(score-self.calc_score_for_state(self.previousState))*self.variables[self.weights.index(weight)]
 
 
 
