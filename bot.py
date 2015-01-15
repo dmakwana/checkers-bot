@@ -24,7 +24,6 @@ class DoubleBotRunner():
 		self.create_weight_file()
 		self.weights = []
 		self.get_weights()
-		print len(self.weights)
 		self.bot1 = CheckersBot(self.weights, self.game, Colour.BLACK)
 		self.bot2 = CheckersBot(self.weights, self.game, Colour.RED)
 
@@ -48,7 +47,6 @@ class DoubleBotRunner():
 
 		self.file_path = os.path.join(directory, 'checkers_weights')
 		write = os.path.exists(self.file_path)
-		print write
 		if write:
 			self.file = open(self.file_path, 'r')
 		else:
@@ -91,8 +89,8 @@ class CheckersBot():
 			return
 		else:
 			states = self.game.get_states_for_list_of_moves(moves)
-			score = self.calc_score_for_state(states[1])
-			stateChosen=states[1]
+			score = self.calc_score_for_state(states[0])
+			stateChosen=states[0]
 			for state in states:
 				if self.calc_score_for_state(state)>score:
 					score = self.calc_score_for_state
@@ -101,6 +99,7 @@ class CheckersBot():
 			if self.previousState:
 				self.update_weights(score)
 			self.previousState= stateChosen
+			self.game.move_here(stateChosen["move"])
 
 	def state_to_variables(self, state):
 
