@@ -27,6 +27,7 @@ class DoubleBotRunner():
 		self.bot1 = CheckersBot(self.weights, self.game, Colour.BLACK)
 		self.bot2 = CheckersBot(self.weights, self.game, Colour.RED)
 
+
 	def run(self):
 		self.game.start_game()
 		while self.game.gameRunning:
@@ -51,7 +52,7 @@ class DoubleBotRunner():
 			self.file = open(self.file_path, 'r')
 		else:
 			self.file = open(self.file_path, 'w+')
-			defaultWeight = 1
+			defaultWeight = 10
 			for i in range(6):
 				self.file.write(str(defaultWeight)+'\n')
 		self.file.close()
@@ -89,14 +90,18 @@ class CheckersBot():
 			return
 		else:
 			states = self.game.get_states_for_list_of_moves(moves)
+			self.state_to_variables(states[0])
 			score = self.calc_score_for_state(states[0])
 			stateChosen=states[0]
 			for state in states:
+				self.state_to_variables(state)
 				if self.calc_score_for_state(state)>score:
-					score = self.calc_score_for_state
+					score = self.calc_score_for_state(state)
 					stateChosen = state
 
 			if self.previousState:
+				self.state_to_variables(self.previousState)
+				print "Score is " + str(score)
 				self.update_weights(score)
 			self.previousState= stateChosen
 			self.game.move_here(stateChosen["move"])
@@ -119,6 +124,7 @@ class CheckersBot():
 	def update_weights (self, score):
 		for weight in self.weights:
 			weight += self.n*(score-self.calc_score_for_state(self.previousState))*self.variables[self.weights.index(weight)]
+			print "The new weight " + str(score-self.calc_score_for_state(self.previousState))
 
 
 
