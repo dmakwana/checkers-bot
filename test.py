@@ -2,6 +2,7 @@ from bot import DoubleBotRunner
 
 runner = DoubleBotRunner()
 runner.run()
+sys.exit(0)
 
 # moves = game.possible_moves()
 
